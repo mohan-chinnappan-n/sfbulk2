@@ -174,6 +174,8 @@ class SFBulk2(object):
 
     delete_res = requests.delete(delete_query_uri, headers=headers)
     return detelete_res
+    
+
   
   def ingest_multipart (self, operation=None, obj= None, data=None):
     if not operation or not obj or not data:
@@ -204,5 +206,57 @@ Content-Disposition: form-data; name="content"; filename="content"
 ''' % ( obj, operation, data)
     print (body)
     return requests.post(uri, headers=headers, data=body)
+
+
+##====================== Data Util
+from io import StringIO 
+import pandas as pd
+
+
+class DataUtil(object):
+  def __init__(self):
+    self.version = '0.1.0'
+
+  def write_csv(self, filename, data):
+    data_str = StringIO(data)
+    with open(filename,'w') as file:
+      for line in data_str:
+            file.write(line)
+
+  def vlookup(self, csv1, csv2, lookup_field=None):
+    df1 = pd.read_csv(csv1, delimiter=',')
+    df2 = pd.read_csv(csv2, delimiter=',')
+    return df1.merge(df2, on=lookup_field)
+
+
+## Fake data generator
+
+from faker import Faker
+import csv
+from io import  StringIO
+
+class FakerUtil(object):
+  def __init__(self):
+    self.faker = Faker()
+  
+  def gen_fake_records(self, out_csv_file='output.csv', num_records=100, col_delim=',', fields=('name', 'address', 'ssn'), amount_max=1000):
+    records = []
+    records.append(fields)
+    for _ in range(num_records):
+      cols = list()
+      for idx, field in enumerate(fields):
+        if field == 'amount':
+          cols.insert (idx, '{:.3f}'.format(self.faker.random.random()* amount_max))
+        else:
+          cols.insert (idx, eval('self.faker.{}()'.format(field)).replace('\n',', '))  
+      rec = tuple(cols)
+      records.append(rec)
+
+    with open(out_csv_file,'w') as out:
+      csv_out = csv.writer(out)
+      for row in records:
+        csv_out.writerow(row)
+    
+    return records
 
 

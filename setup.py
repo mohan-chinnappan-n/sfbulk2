@@ -5,7 +5,7 @@ with open ('README.md', 'r') as fh:
 
 setup (
     name="sfbulk2",
-    version="0.1.0",
+    version="0.3.0",
     description="Util Class for Salesforce Bulk API 2.0",
     py_modules=["sfbulk2"],
     package_dir={'':'src'},
@@ -19,8 +19,7 @@ setup (
 
 
     classifiers= [
-        "Programming Language :: Python :: 3.6",
-        "License :: MIT"
+        "Programming Language :: Python :: 3.6"
     ]
 
 
@@ -30,3 +29,6 @@ setup (
 # python setup.py bdist_wheel
 ## installling current dir
 # pip install -e .
+# python setup.py sdist
+# twine upload dist/*
+# https://pypi.org/project/sfbulk2/0.1.0/#description
