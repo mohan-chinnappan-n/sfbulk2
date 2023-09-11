@@ -5,7 +5,9 @@ from datetime import datetime
 import  sfbulk2  as gl
 
 # Example
-# python example_gl.py --git_folder  <git_folder>  --from_date 2023-08-01 --output_csv ~/git-functions/commit_logs.csv
+# python gitlogs.py --git_folder  <git_folder>  --from_date 2023-08-01 --output_csv /tmp/commit_logs.csv
+# python gitlogs.py --git_folder  .  --from_date 2023-08-01 --output_csv /tmp/commit_logs.csv
+
 def main():
     parser = argparse.ArgumentParser(description='List Git commit logs for a given folder')
     parser.add_argument('--git_folder', type=str, help='Path to the Git repository folder')
