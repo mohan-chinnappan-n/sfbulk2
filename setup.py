@@ -5,8 +5,8 @@ with open ('README.md', 'r') as fh:
 
 setup (
     name="sfbulk2",
-    version="0.3.0",
-    description="Util Class for Salesforce Bulk API 2.0",
+    version="0.8.0",
+    description="Util Class for Salesforce Bulk API 2.0 and gitlog util",
     py_modules=["sfbulk2"],
     package_dir={'':'src'},
     long_description=long_description,

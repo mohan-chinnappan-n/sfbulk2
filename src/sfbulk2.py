@@ -1,6 +1,6 @@
 import requests
 
-DEFAULT_API_VERSION = "v47.0"
+DEFAULT_API_VERSION = "v58.0"
 
 
 class SFBulk2(object):
@@ -258,5 +258,103 @@ class FakerUtil(object):
         csv_out.writerow(row)
     
     return records
+
+
+import subprocess
+import argparse
+import os
+import re
+from datetime import datetime
+import csv
+import pyperclip
+import webbrowser
+
+def get_git_commit_logs(folder_path, from_date=None):
+    try:
+        # Change the current working directory to the Git folder
+        os.chdir(folder_path)
+
+        # Define the date format for parsing commit dates
+        date_format = '%Y-%m-%d'
+
+        # Prepare the Git log command with optional date filtering
+        git_log_command = ['git', 'log', '--pretty=format:%h|%an|%ad|%s', '--numstat']
+        if from_date:
+            from_date_str = from_date.strftime(date_format)
+            git_log_command.append(f'--since={from_date_str}')
+
+        # Run the Git log command to get commit logs
+        git_log_output = subprocess.check_output(git_log_command, encoding='utf-8')
+
+        # Split the output into individual commits
+        commit_logs = []
+        commit_pattern = re.compile(r'^([a-f0-9]+)\|([^|]+)\|([^|]+)\|(.+)$', re.MULTILINE)
+        matches = commit_pattern.findall(git_log_output)
+
+        for match in matches:
+            commit_id, author, date_str, comment = match
+            try:
+                date = datetime.strptime(date_str, date_format)
+            except ValueError:
+                # Handle incorrect date formats gracefully
+                date = None
+
+            commit_logs.append({
+                'commit_id': commit_id,
+                'author': author,
+                'date': date.strftime(date_format) if date else date_str,  # Use original date if parsing fails
+                'comment': comment,
+            })
+
+        return commit_logs
+
+    except subprocess.CalledProcessError as e:
+        print(f'Error: {e}')
+        return []
+
+def save_to_csv(commit_logs, output_csv):
+    with open(output_csv, mode='w', newline='') as csv_file:
+        fieldnames = ['commit_id', 'author', 'date', 'comment']
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer.writeheader()
+        for commit in commit_logs:
+            writer.writerow(commit)
+
+def copy_to_clipboard(text):
+    pyperclip.copy(text)
+
+# python get_git_logs.py --git_folder  <git_folder>  --from_date 2023-08-01 --output_csv ~/git-functions/commit_logs.csv
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='List Git commit logs for a given folder')
+    parser.add_argument('--git_folder', type=str, help='Path to the Git repository folder')
+    parser.add_argument('--from_date', type=str, help='Filter commits from the specified date (YYYY-MM-DD)')
+    parser.add_argument('--output_csv', type=str, help='Specify the output CSV file')
+    args = parser.parse_args()
+
+    git_folder = args.git_folder
+    from_date_str = args.from_date
+    from_date = datetime.strptime(from_date_str, '%Y-%m-%d') if from_date_str else None
+    commit_logs = get_git_commit_logs(git_folder, from_date)
+
+    if args.output_csv:
+        output_csv = args.output_csv
+        save_to_csv(commit_logs, output_csv)
+        print(f'Commit logs saved to {output_csv}')
+        
+        # Copy CSV content to clipboard
+        with open(output_csv, 'r') as csv_file:
+            csv_content = csv_file.read()
+            copy_to_clipboard(csv_content)
+            print('CSV content copied to clipboard')
+
+        # Open the specified URL with the CSV data
+        web_url = f'https://mohan-chinnappan-n5.github.io/viz/datatable/dt.html?c=csv'
+        webbrowser.open(web_url)
+
+    else:
+        print('Commit Logs:')
+        for commit in commit_logs:
+            print(commit)
+
 
 
